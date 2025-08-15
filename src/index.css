@@ -8,35 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 240 10% 98%;
+    --foreground: 225 35% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 225 35% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 225 35% 16%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 250 85% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 225 15% 92%;
+    --secondary-foreground: 225 35% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 225 15% 94%;
+    --muted-foreground: 225 25% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 200 75% 85%;
+    --accent-foreground: 225 35% 16%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 225 15% 88%;
+    --input: 225 15% 88%;
+    --ring: 250 85% 65%;
 
-    --radius: 0.5rem;
+    /* Mental Health App Custom Colors */
+    --therapeutic: 250 85% 65%;
+    --therapeutic-light: 250 60% 85%;
+    --calm: 200 75% 85%;
+    --calm-light: 200 50% 92%;
+    --wellness: 170 60% 75%;
+    --wellness-light: 170 40% 88%;
+    --success: 140 60% 70%;
+    --warning: 35 85% 75%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(250 85% 65%), hsl(200 75% 85%));
+    --gradient-calm: linear-gradient(135deg, hsl(200 75% 85%), hsl(170 60% 75%));
+    --gradient-wellness: linear-gradient(180deg, hsl(240 10% 98%), hsl(225 15% 94%));
+
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,33 +71,47 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 225 35% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 225 35% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 225 35% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 250 85% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 225 25% 20%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 225 25% 18%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 200 60% 25%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 225 25% 20%;
+    --input: 225 25% 20%;
+    --ring: 250 85% 65%;
+
+    /* Dark mode mental health colors */
+    --therapeutic: 250 85% 65%;
+    --therapeutic-light: 250 60% 45%;
+    --calm: 200 75% 65%;
+    --calm-light: 200 50% 45%;
+    --wellness: 170 60% 55%;
+    --wellness-light: 170 40% 35%;
+    --success: 140 60% 50%;
+    --warning: 35 85% 55%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(250 85% 65%), hsl(200 75% 65%));
+    --gradient-calm: linear-gradient(135deg, hsl(200 75% 65%), hsl(170 60% 55%));
+    --gradient-wellness: linear-gradient(180deg, hsl(225 35% 8%), hsl(225 25% 18%));
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
