@@ -3,11 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Book, Users, Brain, MessageSquare, Target } from "lucide-react";
+import { useState } from "react";
+import WellnessModal from "@/components/WellnessModal";
+import { useToast } from "@/hooks/use-toast";
 import meditationIcon from "@/assets/meditation-icon.jpg";
 import chatIcon from "@/assets/chat-support-icon.jpg";
 import progressIcon from "@/assets/progress-icon.jpg";
 
 const Dashboard = () => {
+  const [selectedResource, setSelectedResource] = useState<any>(null);
+  const { toast } = useToast();
   const weeklyMood = [
     { day: "Mon", mood: 4, color: "bg-success" },
     { day: "Tue", mood: 3, color: "bg-wellness" },
@@ -24,23 +29,38 @@ const Dashboard = () => {
       description: "5-minute guided breathing exercise",
       duration: "5 min",
       icon: meditationIcon,
-      category: "Meditation"
+      category: "Meditation",
+      type: 'meditation' as const
     },
     {
       title: "AI Wellness Chat",
       description: "Talk to your mental health companion",
       duration: "Available 24/7",
       icon: chatIcon,
-      category: "Support"
+      category: "Support",
+      type: 'chat' as const
     },
     {
       title: "Progress Review",
       description: "Weekly wellness insights and trends",
       duration: "10 min",
       icon: progressIcon,
-      category: "Analytics"
+      category: "Analytics",
+      type: 'progress' as const
     }
   ];
+
+  const handleResourceClick = (resource: any) => {
+    setSelectedResource(resource);
+  };
+
+  const handleAIConversation = () => {
+    toast({
+      title: "AI Companion Ready! 🤖",
+      description: "Starting your conversation with MindGuard AI...",
+    });
+    // In a real app, this would navigate to a chat interface
+  };
 
   return (
     <section className="py-16 bg-background">
@@ -134,7 +154,10 @@ const Dashboard = () => {
                     <Badge variant="secondary">{resource.category}</Badge>
                     <span className="text-sm text-muted-foreground">{resource.duration}</span>
                   </div>
-                  <Button className="w-full mt-4 bg-gradient-primary hover:scale-105 transition-all duration-300">
+                  <Button 
+                    className="w-full mt-4 bg-gradient-primary hover:scale-105 transition-all duration-300"
+                    onClick={() => handleResourceClick(resource)}
+                  >
                     Start Session
                   </Button>
                 </CardContent>
@@ -154,12 +177,25 @@ const Dashboard = () => {
               Your AI companion is here to listen, provide support, and offer personalized guidance 
               based on your mental health journey.
             </p>
-            <Button size="lg" className="bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+              onClick={handleAIConversation}
+            >
               <MessageSquare className="w-5 h-5 mr-2" />
               Start Conversation
             </Button>
           </CardContent>
         </Card>
+
+        {/* Wellness Modal */}
+        {selectedResource && (
+          <WellnessModal
+            isOpen={!!selectedResource}
+            onClose={() => setSelectedResource(null)}
+            resource={selectedResource}
+          />
+        )}
       </div>
     </section>
   );

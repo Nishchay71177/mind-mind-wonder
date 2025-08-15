@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import MoodTracker from "@/components/MoodTracker";
 import heroImage from "@/assets/hero-wellness.jpg";
 import { Heart, MessageCircle, TrendingUp } from "lucide-react";
 
@@ -26,7 +27,7 @@ const HeroSection = () => {
         </div>
 
         <div className="animate-slide-up delay-300 mb-12">
-          <MoodCheckIn />
+          <MoodTracker />
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl animate-slide-up delay-500">
@@ -48,39 +49,6 @@ const HeroSection = () => {
         </div>
       </div>
     </section>
-  );
-};
-
-const MoodCheckIn = () => {
-  const moods = [
-    { emoji: "😊", label: "Great", color: "bg-success" },
-    { emoji: "🙂", label: "Good", color: "bg-wellness" },
-    { emoji: "😐", label: "Okay", color: "bg-calm" },
-    { emoji: "😔", label: "Low", color: "bg-warning" },
-    { emoji: "😢", label: "Difficult", color: "bg-destructive" },
-  ];
-
-  return (
-    <Card className="p-8 backdrop-blur-sm bg-card/90 border-0 shadow-2xl">
-      <h3 className="text-2xl font-semibold mb-6 text-card-foreground">
-        How are you feeling today?
-      </h3>
-      <div className="flex gap-4 justify-center mb-6">
-        {moods.map((mood, index) => (
-          <Button
-            key={mood.label}
-            variant="outline"
-            size="lg"
-            className="h-16 w-16 rounded-full border-2 hover:scale-110 transition-all duration-300 bg-card hover:bg-accent"
-          >
-            <span className="text-2xl">{mood.emoji}</span>
-          </Button>
-        ))}
-      </div>
-      <Button className="bg-gradient-primary text-primary-foreground px-8 py-3 hover:scale-105 transition-all duration-300">
-        Check In Now
-      </Button>
-    </Card>
   );
 };
 
