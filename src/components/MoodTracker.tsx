@@ -1,156 +1,245 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, CheckCircle, Calendar } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from "recharts";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
-export interface MoodEntry {
+interface MoodEntry {
   id: string;
-  mood: number;
-  label: string;
-  emoji: string;
+  mood_value: number;
+  mood_label: string;
+  mood_emoji: string;
   note?: string;
-  timestamp: Date;
+  created_at: string;
 }
 
 interface MoodTrackerProps {
-  onMoodSelect?: (mood: MoodEntry) => void;
+  user: SupabaseUser;
 }
 
-const MoodTracker = ({ onMoodSelect }: MoodTrackerProps) => {
-  const [selectedMood, setSelectedMood] = useState<number | null>(null);
+const moods = [
+  { value: 1, label: "Very Low", emoji: "😢", color: "#ef4444" },
+  { value: 2, label: "Low", emoji: "😔", color: "#f97316" },
+  { value: 3, label: "Neutral", emoji: "😐", color: "#eab308" },
+  { value: 4, label: "Good", emoji: "😊", color: "#84cc16" },
+  { value: 5, label: "Great", emoji: "😄", color: "#22c55e" },
+];
+
+const MoodTracker = ({ user }: MoodTrackerProps) => {
+  const [selectedMood, setSelectedMood] = useState<typeof moods[0] | null>(null);
   const [note, setNote] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
+  const [weeklyData, setWeeklyData] = useState<any[]>([]);
   const { toast } = useToast();
 
-  const moods = [
-    { emoji: "😊", label: "Great", color: "bg-success", value: 5 },
-    { emoji: "🙂", label: "Good", color: "bg-wellness", value: 4 },
-    { emoji: "😐", label: "Okay", color: "bg-calm", value: 3 },
-    { emoji: "😔", label: "Low", color: "bg-warning", value: 2 },
-    { emoji: "😢", label: "Difficult", color: "bg-destructive", value: 1 },
-  ];
+  useEffect(() => {
+    loadMoodHistory();
+  }, []);
 
-  const handleMoodSelect = (moodValue: number) => {
-    setSelectedMood(moodValue);
+  useEffect(() => {
+    if (moodHistory.length > 0) {
+      generateWeeklyData();
+    }
+  }, [moodHistory]);
+
+  const loadMoodHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('mood_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setMoodHistory(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load mood history",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSubmitMood = () => {
-    if (selectedMood === null) return;
-
-    const selectedMoodData = moods.find(m => m.value === selectedMood);
-    if (!selectedMoodData) return;
-
-    const moodEntry: MoodEntry = {
-      id: Date.now().toString(),
-      mood: selectedMood,
-      label: selectedMoodData.label,
-      emoji: selectedMoodData.emoji,
-      note: note.trim() || undefined,
-      timestamp: new Date(),
-    };
-
-    // Save to localStorage
-    const existingEntries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
-    const updatedEntries = [moodEntry, ...existingEntries].slice(0, 30); // Keep last 30 entries
-    localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
-
-    onMoodSelect?.(moodEntry);
+  const generateWeeklyData = () => {
+    const last7Days = [];
+    const today = new Date();
     
-    toast({
-      title: "Mood Logged! 🎉",
-      description: `You're feeling ${selectedMoodData.label.toLowerCase()} today. Take care of yourself!`,
-    });
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayEntries = moodHistory.filter(entry => 
+        entry.created_at.split('T')[0] === dateStr
+      );
+      
+      const averageMood = dayEntries.length > 0
+        ? dayEntries.reduce((sum, entry) => sum + entry.mood_value, 0) / dayEntries.length
+        : 0;
+      
+      last7Days.push({
+        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        mood: parseFloat(averageMood.toFixed(1)),
+        date: dateStr
+      });
+    }
+    
+    setWeeklyData(last7Days);
+  };
 
-    setIsDialogOpen(false);
-    setSelectedMood(null);
-    setNote("");
+  const handleMoodSelect = (mood: typeof moods[0]) => {
+    setSelectedMood(mood);
+  };
+
+  const handleSubmitMood = async () => {
+    if (!selectedMood) return;
+
+    try {
+      const { error } = await supabase
+        .from('mood_entries')
+        .insert({
+          user_id: user.id,
+          mood_value: selectedMood.value,
+          mood_label: selectedMood.label,
+          mood_emoji: selectedMood.emoji,
+          note: note.trim() || null
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Mood logged!",
+        description: `Your ${selectedMood.label.toLowerCase()} mood has been recorded.`,
+      });
+
+      // Reset form and close dialog
+      setSelectedMood(null);
+      setNote("");
+      setIsDialogOpen(false);
+      
+      // Reload mood history
+      loadMoodHistory();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to log mood entry",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getBarColor = (moodValue: number) => {
+    const mood = moods.find(m => m.value === Math.round(moodValue));
+    return mood?.color || "#64748b";
   };
 
   return (
-    <Card className="p-8 backdrop-blur-sm bg-card/90 border-0 shadow-2xl">
-      <h3 className="text-2xl font-semibold mb-6 text-card-foreground">
-        How are you feeling today?
-      </h3>
-      
-      <div className="flex gap-4 justify-center mb-6">
-        {moods.map((mood) => (
-          <Button
-            key={mood.value}
-            variant={selectedMood === mood.value ? "therapeutic" : "outline"}
-            size="lg"
-            className="h-16 w-16 rounded-full border-2 hover:scale-110 transition-all duration-300"
-            onClick={() => handleMoodSelect(mood.value)}
-          >
-            <span className="text-2xl">{mood.emoji}</span>
-          </Button>
-        ))}
-      </div>
-
-      {selectedMood && (
-        <div className="text-center mb-4">
-          <Badge variant="secondary" className="mb-2">
-            Feeling {moods.find(m => m.value === selectedMood)?.label}
-          </Badge>
-        </div>
-      )}
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button 
-            className="bg-gradient-primary text-primary-foreground px-8 py-3 hover:scale-105 transition-all duration-300"
-            disabled={selectedMood === null}
-          >
-            <Heart className="w-4 h-4 mr-2" />
-            Check In Now
-          </Button>
-        </DialogTrigger>
-        
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-therapeutic" />
-              Complete Your Check-In
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="text-center">
-              <span className="text-4xl">
-                {moods.find(m => m.value === selectedMood)?.emoji}
-              </span>
-              <p className="text-lg font-medium mt-2">
-                You're feeling {moods.find(m => m.value === selectedMood)?.label}
-              </p>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Want to add a note? (Optional)
-              </label>
-              <Textarea
-                placeholder="What's on your mind today?"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="resize-none"
-                rows={3}
-              />
-            </div>
-            
-            <Button 
-              onClick={handleSubmitMood}
-              className="w-full bg-gradient-primary hover:scale-105 transition-all duration-300"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Complete Check-In
-            </Button>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>How are you feeling today?</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 mb-6">
+            {moods.map((mood) => (
+              <Button
+                key={mood.value}
+                variant={selectedMood?.value === mood.value ? "default" : "outline"}
+                className="flex-1 h-20 flex-col gap-2"
+                onClick={() => handleMoodSelect(mood)}
+              >
+                <span className="text-2xl">{mood.emoji}</span>
+                <span className="text-xs">{mood.label}</span>
+              </Button>
+            ))}
           </div>
-        </DialogContent>
-      </Dialog>
-    </Card>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                className="w-full" 
+                disabled={!selectedMood}
+                variant="default"
+              >
+                Log Mood
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Complete Your Mood Check-In</DialogTitle>
+              </DialogHeader>
+              {selectedMood && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">{selectedMood.emoji}</div>
+                    <h3 className="text-lg font-medium">Feeling {selectedMood.label}</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Add a note (optional)
+                    </label>
+                    <Textarea
+                      placeholder="What's on your mind? How was your day?"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <Button onClick={handleSubmitMood} className="w-full">
+                    Complete Check-In
+                  </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+
+      {weeklyData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Mood Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis domain={[0, 5]} />
+                  <Bar dataKey="mood" radius={[4, 4, 0, 0]}>
+                    {weeklyData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={getBarColor(entry.mood)}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center gap-4 mt-4 text-xs">
+              {moods.map((mood) => (
+                <div key={mood.value} className="flex items-center gap-1">
+                  <div 
+                    className="w-3 h-3 rounded" 
+                    style={{ backgroundColor: mood.color }}
+                  />
+                  <span>{mood.label}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
