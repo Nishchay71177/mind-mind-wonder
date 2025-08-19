@@ -127,6 +127,33 @@ export type Database = {
         }
         Relationships: []
       }
+      wellness_points: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

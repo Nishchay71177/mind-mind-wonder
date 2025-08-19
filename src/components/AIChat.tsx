@@ -116,6 +116,23 @@ const AIChat = ({ user, onBack }: AIChatProps) => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      // Analyze conversation for wellness points
+      const allMessages = [...messages, userMessage, aiMessage];
+      
+      supabase.functions.invoke('analyze-wellness', {
+        body: { 
+          messages: allMessages.slice(-6), // Last 6 messages for context
+          conversationId: conversationId
+        }
+      }).then(({ data: analysisData }) => {
+        if (analysisData?.points_awarded > 0) {
+          toast({
+            title: "Wellness points earned!",
+            description: `+${analysisData.points_awarded} points: ${analysisData.reason}`,
+          });
+        }
+      }).catch(console.error);
     } catch (error: any) {
       toast({
         title: "Error",

@@ -76,7 +76,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/wellness'}>
             <CardHeader className="text-center">
               <Heart className="w-12 h-12 mx-auto mb-4 text-wellness" />
               <CardTitle>Wellness Hub</CardTitle>
@@ -85,8 +85,8 @@ const Index = () => {
               <p className="text-muted-foreground mb-4">
                 Access resources, tips, and wellness tools
               </p>
-              <Button variant="outline" className="w-full" disabled>
-                Coming Soon
+              <Button variant="outline" className="w-full">
+                Explore Resources
               </Button>
             </CardContent>
           </Card>
